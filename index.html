@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReaR — Physics-Guided Radar Synthesis for Simulators Without a Radar Model</title>
+<meta name="description" content="ReaR is a physics-guided learning framework that synthesises 3+1D automotive radar point clouds from LiDAR geometry alone, for simulators that have no radar sensor model. Introduces PRISM, a link-budget-structured architecture, and a null-controlled validation protocol.">
+
+<!-- Open Graph / social preview -->
+<meta property="og:title" content="ReaR: Physics-Guided Radar Synthesis for Simulators Without a Radar Model">
+<meta property="og:description" content="A physics-guided learning framework that synthesises 3+1D automotive radar from LiDAR geometry alone — with PRISM, a link-budget-structured architecture, and a null-controlled validation protocol.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="assets/img/fig_overview.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============================== NAV ============================== -->
+<nav class="site-nav">
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="32" height="32" rx="7" fill="#0E1A33"/>
+        <path d="M16 24 L8 12 A9 9 0 0 1 24 12 Z" fill="#E8873D" opacity="0.30"/>
+        <path d="M16 24 L8 12" stroke="#E8873D" stroke-width="1.4" opacity="0.85"/>
+        <path d="M16 24 L24 12" stroke="#E8873D" stroke-width="1.4" opacity="0.85"/>
+        <path d="M11.3 15.2 A6 6 0 0 1 20.7 15.2" fill="none" stroke="#E8873D" stroke-width="1.1" opacity="0.6" stroke-dasharray="1.6 2.2"/>
+        <circle cx="16" cy="24" r="2.1" fill="#F7D9BE"/>
+      </svg>
+      ReaR
+    </a>
+    <ul class="nav-links">
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#localise">Diagnosis</a></li>
+      <li><a href="#material">Material</a></li>
+      <li><a href="#prism">PRISM-2</a></li>
+      <li><a href="#downstream">Transfer</a></li>
+      <li><a href="#bibtex">BibTeX</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+<!-- ============================== HERO ============================== -->
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="hero-kicker">IEEE Robotics and Automation Letters (RA-L) &middot; submission</div>
+    <h1 class="hero-title">Where Is the Reflectivity?<span class="accent">.</span></h1>
+    <p class="hero-sub">Localising and encoding the missing signal in LiDAR-to-radar point cloud generation — a physics-guided generator used as an instrument to find out <em>where</em> the reflectivity a detector needs actually lives.</p>
+
+    <div class="authors">
+      <a href="#">Vivek Anand<sup>1</sup></a>
+      <a href="#">Bharat Lohani<sup>1</sup></a>
+      <a href="#">Rakesh Mishra<sup>2</sup></a>
+    </div>
+    <div class="affiliations">
+      <span class="aff-item"><sup>1</sup>Indian Institute of Technology Kanpur, India</span>
+      <span class="aff-item"><sup>2</sup>University of New Brunswick, Canada</span>
+    </div>
+
+    <div class="link-row">
+      <a class="btn primary" href="#" data-placeholder="paper-pdf">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        Paper (PDF)
+      </a>
+      <a class="btn ghost" href="#" data-placeholder="arxiv">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+        arXiv
+      </a>
+      <a class="btn ghost" href="#" data-placeholder="github-repo">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.73.5.98 5.24.98 11.52c0 5.02 3.26 9.28 7.77 10.78.57.1.78-.25.78-.55v-2.1c-3.16.69-3.83-1.35-3.83-1.35-.52-1.31-1.27-1.66-1.27-1.66-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.74 2.68 1.24 3.34.95.1-.74.4-1.24.72-1.53-2.52-.29-5.17-1.26-5.17-5.6 0-1.24.44-2.25 1.17-3.04-.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.14 1.16a10.9 10.9 0 0 1 5.72 0c2.18-1.47 3.14-1.16 3.14-1.16.62 1.57.23 2.73.11 3.02.73.79 1.17 1.8 1.17 3.04 0 4.35-2.66 5.31-5.19 5.59.41.35.77 1.04.77 2.1v3.11c0 .3.21.66.79.55 4.5-1.5 7.76-5.76 7.76-10.78C23.02 5.24 18.27.5 12 .5Z"/></svg>
+        Code
+      </a>
+      <a class="btn ghost" href="#" data-placeholder="dataset">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>
+        Data
+      </a>
+      <a class="btn ghost" href="#bibtex">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        BibTeX
+      </a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <figure class="hero-figure">
+      <img src="assets/img/hero.svg" alt="Illustration of an ego vehicle at night with a forward radar field-of-view cone showing scattered detections, over a highway scene" width="1600" height="640" loading="eager">
+    </figure>
+    <p class="hero-caption">Radar stays reliable through fog, rain, and darkness — and is the one modality simulators can't render, because a return depends on material and sub-wavelength surface properties no rasteriser tracks. ReaR supplies it as a learned, physics-constrained surrogate.</p>
+  </div>
+</header>
+
+<!-- ============================== OVERVIEW ============================== -->
+<section id="overview">
+  <div class="wrap">
+    <div class="section-kicker">Overview</div>
+    <h2 class="section-title">Radar for simulators that were never built to have any</h2>
+    <p class="lede">ReaR learns only what physics leaves undetermined — detection likelihood and reflectivity — computing visibility and Doppler exactly. We then use it as an instrument: a channel-attribution test with a <em>fixed</em> detector localises the missing signal, a material branch recovers a large part of it, and a derangement control establishes precisely which part does the work.</p>
+
+    <div class="stat-strip">
+      <div class="stat"><div class="num">84%</div><div class="label">of recoverable signal on background surfaces</div></div>
+      <div class="stat"><div class="num">+0.0513</div><div class="label">RCS w-R&sup2; from the material branch</div></div>
+      <div class="stat"><div class="num">+0.0012</div><div class="label">from the EM constants — inside the floor</div></div>
+      <div class="stat"><div class="num">0.4470</div><div class="label">RCS w-R&sup2;, production head</div></div>
+    </div>
+
+    <div style="text-align:center;">
+      <span class="tag">3+1D radar synthesis</span>
+      <span class="tag">physics-guided learning</span>
+      <span class="tag">semantic material priors</span>
+      <span class="tag">ITU-R P.2040-4</span>
+      <span class="tag">pre-registered controls</span>
+      <span class="tag">negative result with a mechanism</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== FRAMEWORK ============================== -->
+<section id="framework">
+  <div class="wrap">
+    <div class="section-kicker">Framework</div>
+    <h2 class="section-title">Compute what physics determines. Learn only the rest.</h2>
+
+    <figure class="figure">
+      <img src="assets/img/fig_overview.png" alt="Diagram showing a driving simulator that supplies camera, LiDAR, and semantics but not radar, with ReaR bridging the gap to produce synthetic 3+1D radar">
+      <figcaption>Simulators supply camera, LiDAR, and semantics for free — never radar. ReaR consumes only the LiDAR geometry already available and returns physically-grounded 3+1D radar.</figcaption>
+    </figure>
+
+    <figure class="figure wide">
+      <img src="assets/img/fig_pipeline.png" alt="The ReaR pipeline: LiDAR geometry is voxelised, filtered by visibility, encoded into eight physics features, and scored by a detection head and RCS head, combined with a fitted clutter process and analytic Doppler">
+      <figcaption><strong>The full pipeline.</strong> Geometry is filtered by hard visibility constraints and reduced to eight domain-invariant physics features. Two small networks predict detection and reflectivity; clutter is a fitted point process; Doppler is analytic. Learning is confined to the two shaded heads.</figcaption>
+    </figure>
+
+    <div class="grid-3">
+      <div class="card">
+        <svg class="card-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="30" height="30" rx="7" fill="#EEF2F8"/><path d="M11 25 L11 17 L18 11 L25 17 L25 25" stroke="#1E3A5F" stroke-width="2" fill="none" stroke-linejoin="round"/><circle cx="18" cy="18" r="2" fill="#C96A22"/></svg>
+        <h4>Exact, not learned</h4>
+        <p>Range, angle, occlusion, and Doppler — computed and hard-constrained.</p>
+      </div>
+      <div class="card">
+        <svg class="card-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="30" height="30" rx="7" fill="#EEF2F8"/><circle cx="12" cy="14" r="2.6" fill="#1E3A5F"/><circle cx="24" cy="14" r="2.6" fill="#1E3A5F"/><circle cx="18" cy="24" r="2.6" fill="#C96A22"/><path d="M12 14L18 24M24 14L18 24M12 14L24 14" stroke="#1E3A5F" stroke-width="1.4"/></svg>
+        <h4>Learn only the residual</h4>
+        <p>Detection and reflectivity — the two things LiDAR can't see.</p>
+      </div>
+      <div class="card">
+        <svg class="card-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="30" height="30" rx="7" fill="#EEF2F8"/><path d="M9 25 L9 12 M9 25 L27 25" stroke="#1E3A5F" stroke-width="2"/><path d="M9 20 L15 15 L20 18 L27 10" stroke="#C96A22" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h4>Validate against a null</h4>
+        <p>Every fidelity statistic paired with a structure-destroying baseline.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== LOCALISATION ============================== -->
+<section id="localise" class="band">
+  <div class="wrap">
+    <div class="section-kicker">The diagnostic</div>
+    <h2 class="section-title">Where does the missing reflectivity actually live?</h2>
+    <p class="lede">We hold geometry byte-identical and swap one channel through a <em>fixed</em> detector, so attribution is exact — nothing is retrained. The detector turns out to be ~98% RCS-dependent.</p>
+
+    <figure class="figure">
+      <img src="assets/img/fig_localisation.png" alt="Bar chart: real RCS gives +0.0233 Car AP, background restoration recovers +0.0195, in-box restoration only +0.0036 which matches a size-matched random control at +0.0037">
+      <figcaption><strong>Background surfaces hold 84% of the recoverable signal.</strong> Restoring RCS inside annotated boxes is statistically indistinguishable from a size-matched <em>random</em> control — object territory carries no premium. It is simply 5.1% of the population.</figcaption>
+    </figure>
+
+    <div class="grid-3">
+      <div class="card">
+        <h4>Not a distributional gap</h4>
+        <p>Restoring the real RCS spread with zero per-point information buys nothing.</p>
+      </div>
+      <div class="card">
+        <h4>Noise makes it worse</h4>
+        <p>Residual-scale noise improves the marginal and <em>costs</em> −0.0102 Car AP.</p>
+      </div>
+      <div class="card">
+        <h4>A coverage failure</h4>
+        <p>A prior negative on object-class labels was coverage, not information.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== MATERIAL ============================== -->
+<section id="material">
+  <div class="wrap">
+    <div class="section-kicker">New — material branch</div>
+    <h2 class="section-title">Semantic material priors from an international standard</h2>
+    <p class="lede">Only one source covers road, facade, vegetation and poles densely: RGB semantics. Each class maps to a <em>material mixture</em>, converted to electromagnetic descriptors via ITU-R P.2040-4 at 77&nbsp;GHz.</p>
+
+    <figure class="figure wide">
+      <img src="assets/img/fig_material.png" alt="Left: attribution bars showing camera coverage worth nothing, semantic partition +0.0508, ITU physics +0.0012 inside the seed floor. Right: per-material gains showing vegetation and soil improving dramatically while metal and concrete do not.">
+      <figcaption><strong>+0.0513 w-R², 5.9× the seed floor</strong> — three times the head architecture's own contribution. But the derangement control is the point: the gain is the <em>semantic partition</em>, not the electromagnetic constants.</figcaption>
+    </figure>
+
+    <div class="callout">
+      <span class="callout-title">We do not claim the physics improves RCS prediction</span>
+      <p>With the material→constant table <strong>deranged</strong>, the gain survives at +0.0501. The ITU constants themselves add +0.0012 — inside the floor. They are a compact, transferable <em>encoding</em> of the semantic partition, not an additional source of information. Saying so precisely is what the control was for.</p>
+    </div>
+
+    <p style="font-size:14.5px;">The gain's location corroborates the mechanism: on <strong>vegetation</strong>, geometry-only RCS regression scores −0.415 w-R² — worse than predicting the mean — and material lifts it by +0.433. A bush is geometrically a solid object and radiometrically almost nothing, and only a semantic label separates the two. On metal and concrete the gain is <strong>zero</strong>.</p>
+  </div>
+</section>
+
+<!-- ============================== PRISM-2 ============================== -->
+<section id="prism" class="band">
+  <div class="wrap">
+    <div class="section-kicker">New — architecture</div>
+    <h2 class="section-title">PRISM-2: a failure held-out testing cannot see</h2>
+    <p class="lede">The radar link budget is additive in decibels, so the head is a neural GAM over disjoint physics groups — with material entering as the σ<sub>dB</sub> term's missing argument.</p>
+
+    <figure class="figure wide">
+      <img src="assets/img/fig_prism2.png" alt="PRISM-2 architecture: five additive branches — propagation, beam, surface, occlusion, and material — over the radar link budget, with FiLM, bilinear coupling and the high-frequency spectral tail removed">
+      <figcaption><strong>Five additive branches, every term separately plottable.</strong> Material is deliberately <em>not</em> spectrally lifted — it is bounded and smooth, and it is the one input whose train/deploy distributions are known to differ.</figcaption>
+    </figure>
+
+    <div class="grid-3">
+      <div class="card">
+        <h4>Diagnosed by roughness</h4>
+        <p>Our prior head was smoother in-domain yet 1.4× rougher where deployed. The metric needs no ground truth.</p>
+      </div>
+      <div class="card">
+        <h4>A hash outside its support</h4>
+        <p>32 oscillations across the IQR; the deployment shift rotates that channel 9–29 full periods.</p>
+      </div>
+      <div class="card">
+        <h4>Strictly better</h4>
+        <p>Both in-domain metrics, 2.8× less input-sensitive, 27% smoother on deployment — at 38% fewer parameters.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== RESULTS ============================== -->
+<section id="results">
+  <div class="wrap">
+    <div class="section-kicker">Results</div>
+    <h2 class="section-title">Fidelity on real, held-out radar</h2>
+    <p class="lede">Measured on View-of-Delft's full 413-frame test split — the only domain with real paired LiDAR–radar supervision.</p>
+
+    <div class="criteria-row">
+      <span class="criterion-pill"><span class="dot"></span>Count ratio</span>
+      <span class="criterion-pill"><span class="dot"></span>Object hit rate</span>
+      <span class="criterion-pill"><span class="dot"></span>Per-object VMR</span>
+      <span class="criterion-pill"><span class="dot"></span>&ge;6 detections</span>
+      <span class="criterion-pill"><span class="dot"></span>RCS Wasserstein</span>
+      <span class="criterion-pill"><span class="dot"></span>Count Wasserstein</span>
+      <span class="criterion-pill fail"><span class="dot"></span>Object extent</span>
+    </div>
+    <p style="font-size:13.5px; color:var(--ink-3);">6 of 7 pre-registered structural criteria pass · 9 of 13 null-normalised distributional tests pass · every threshold fixed in writing before the run</p>
+
+    <figure class="figure wide">
+      <img src="assets/img/fig_qual_vod.png" alt="Input LiDAR, real radar and ReaR output on the same View-of-Delft test frame, coloured by radar cross-section">
+      <figcaption>Input LiDAR, real radar, and ReaR output on the same VoD test frame, coloured by RCS.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============================== DOWNSTREAM ============================== -->
+<section id="downstream" class="band">
+  <div class="wrap">
+    <div class="section-kicker">The negative result</div>
+    <h2 class="section-title">None of it transfers — and we can say why</h2>
+    <p class="lede">The generator-side gain is real and large. It does not reach the detector, and we report that as a primary result rather than a limitation.</p>
+
+    <div class="stat-strip">
+      <div class="stat"><div class="num">+0.0513</div><div class="label">w-R² on the generator</div></div>
+      <div class="stat"><div class="num">+0.0040</div><div class="label">Car AP downstream — inside the floor</div></div>
+      <div class="stat"><div class="num">0.0000</div><div class="label">Car AP, generated data alone</div></div>
+      <div class="stat"><div class="num">−0.0102</div><div class="label">Car AP from noise that <em>improves</em> realism</div></div>
+    </div>
+
+    <div class="callout bad">
+      <span class="callout-title">Marginal realism and information pull in opposite directions</span>
+      <p>Injecting noise at the residual scale makes the RCS marginal <em>more</em> realistic while making the detector worse. Optimising distributional fidelity can actively remove usable signal — which is why we report a negative with a mechanism rather than a fidelity score.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== CONTRIBUTIONS ============================== -->
+<section id="contributions">
+  <div class="wrap">
+    <div class="section-kicker">Contributions</div>
+    <h2 class="section-title">What this work adds</h2>
+    <div class="contrib-grid">
+      <div class="contrib-badge"><div class="n">1</div><p>A channel-attribution instrument with a fixed detector</p></div>
+      <div class="contrib-badge"><div class="n">2</div><p>Localisation: background carries 84% of the headroom</p></div>
+      <div class="contrib-badge"><div class="n">3</div><p>Exclusion of the distributional explanation</p></div>
+      <div class="contrib-badge"><div class="n">4</div><p>A material feature from ITU-R P.2040-4</p></div>
+      <div class="contrib-badge"><div class="n">5</div><p>A negative on the physics, by derangement control</p></div>
+      <div class="contrib-badge"><div class="n">6</div><p>PRISM-2, selected on two axes</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== RELATED PUBLICATIONS ============================== -->
+<section id="related" class="tight">
+  <div class="wrap">
+    <div class="section-kicker">From the same line of work</div>
+    <h2 class="section-title">Physics-guided sensor simulation, before radar</h2>
+    <ul class="pub-list">
+      <li><span class="venue">arXiv 2026</span><a href="#" data-placeholder="anand2026realitylads">ReaLiTy and LADS: A Unified Framework and Dataset Suite for LiDAR Adaptation Across Sensors and Adverse Weather Conditions</a></li>
+      <li><span class="venue">arXiv 2026</span><a href="#" data-placeholder="anand2026picwgan">Simulating Realistic LiDAR Data Under Adverse Weather for Autonomous Vehicles: A Physics-Informed Learning Approach</a></li>
+      <li><span class="venue">SAE / SIAT 2026</span><a href="#" data-placeholder="anand2026siat">Realistic LiDAR Data Simulation for Autonomous Systems using Physics-Informed Learning</a></li>
+      <li><span class="venue">IEEE IV 2025</span><a href="#" data-placeholder="anand2025snowy">Towards Realistic LiDAR Intensity Simulation in Snowy Weather Using Physics-Informed Learning</a></li>
+      <li><span class="venue">IEEE T-ITS 2025</span><a href="#" data-placeholder="anand2025advancing">Advancing LiDAR Intensity Simulation Through Learning With Novel Physics-Based Modalities</a></li>
+      <li><span class="venue">SIMULTECH 2024</span><a href="#" data-placeholder="anand2024physaware">Toward Physics-Aware Deep Learning Architectures for LiDAR Intensity Simulation</a></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================== BIBTEX ============================== -->
+<section id="bibtex" class="tight">
+  <div class="wrap">
+    <div class="section-kicker">Cite this work</div>
+    <h2 class="section-title">BibTeX</h2>
+    <div class="bibtex-box">
+      <button class="copy-btn" id="copy-bibtex" type="button">Copy</button>
+      <pre id="bibtex-text"><span class="kw">@article</span>{anand2026rear,
+  title   = {Where Is the Reflectivity? Localising and Encoding the Missing
+              Signal in {LiDAR}-to-Radar Point Cloud Generation},
+  author  = {Anand, Vivek and Lohani, Bharat and Mishra, Rakesh},
+  journal = {IEEE Robotics and Automation Letters (RA-L)},
+  year    = {2026},
+  note    = {Submitted}
+}</pre>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ============================== FOOTER ============================== -->
+<footer>
+  <div class="wrap">
+    <div>
+      <div class="footer-brand">ReaR</div>
+      <div>Physics-guided radar synthesis for simulators without a radar model.</div>
+      <div style="margin-top:10px;">Indian Institute of Technology Kanpur &middot; University of New Brunswick</div>
+    </div>
+    <ul class="footer-links">
+      <li><a href="#" data-placeholder="paper-pdf">Paper</a></li>
+      <li><a href="#" data-placeholder="github-repo">Code</a></li>
+      <li><a href="#" data-placeholder="dataset">Data</a></li>
+      <li><a href="#bibtex">BibTeX</a></li>
+      <li><a href="#" data-placeholder="contact-email">Contact</a></li>
+    </ul>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
