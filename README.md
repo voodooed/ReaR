@@ -1,2 +1,2 @@
 # ReaR
-Realistic Radar Generation
+Realistic Radar Generation Framework - https://voodooed.github.io/ReaR/
